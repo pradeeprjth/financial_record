@@ -1,8 +1,8 @@
 import { APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { dataValidationHandler } from './dataValidation';
-import { encryptionHashingHandler } from './encryptionHashing';
-import { riskAssessmentHandler } from './riskAssessment';
-import { storageRetrievalHandler } from './storageRetrieval';
+import { dataValidationHandler } from './src/dataValidation';
+import { encryptionHashingHandler } from './src/encryptionHashing';
+import { riskAssessmentHandler } from './src/riskAssessment';
+import { storageRetrievalHandler } from './src/storageRetrieval';
 
 export const apiGatewayHandler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
     try {

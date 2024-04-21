@@ -1,5 +1,5 @@
 import { APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
-import AWS from 'aws-sdk';
+import * as AWS from 'aws-sdk';
 
 const s3 = new AWS.S3();
 

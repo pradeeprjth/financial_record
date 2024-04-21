@@ -1,5 +1,5 @@
 import { APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
-import crypto from 'crypto';
+import * as crypto from 'crypto';
 
 const generatePseudonym = (identifier: string): string => {
     return crypto.createHash('sha256').update(identifier).digest('hex');

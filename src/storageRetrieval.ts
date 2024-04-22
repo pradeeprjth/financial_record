@@ -5,18 +5,27 @@ const s3 = new AWS.S3();
 
 export const storageRetrievalHandler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
     try {
-        let requestData;
-        if (typeof event.body === 'string' && event.body.trim() !== '') {
-            requestData = JSON.parse(event.body);
-        } else {
-            throw new Error('Request body is empty');
+        console.log('Received request:', event);
+
+        if (!event) {
+            console.error('Request data is missing or invalid');
+            throw new Error('Request data is missing or invalid');
         }
+
+        const requestData = event;
+
+        console.log('Request data:', requestData);
+
         const storedData = await storeData(requestData);
+
+        console.log('Data stored successfully:', storedData);
+
         return {
             statusCode: 200,
             body: JSON.stringify({ storedData })
         };
     } catch (error) {
+        console.error('Error handling request:', error);
         return {
             statusCode: 500,
             body: JSON.stringify({ error: 'Internal server error' })
@@ -24,18 +33,20 @@ export const storageRetrievalHandler = async (event: APIGatewayEvent): Promise<A
     }
 };
 
-
 const storeData = async (data: any): Promise<string> => {
     const storedObjectKey = `data_${Date.now()}.json`;
     try {
-        await s3
-            .upload({
-                Bucket: 'financial-record',
-                Key: storedObjectKey,
-                Body: JSON.stringify(data),
-                ContentType: 'application/json'
-            })
-            .promise();
+        console.log('Storing data in S3:', data);
+
+        await s3.upload({
+            Bucket: 'financial-record',
+            Key: storedObjectKey,
+            Body: JSON.stringify(data),
+            ContentType: 'application/json'
+        }).promise();
+
+        console.log('Data stored successfully:', storedObjectKey);
+
         return storedObjectKey;
     } catch (error) {
         console.error('Error storing data in S3:', error);

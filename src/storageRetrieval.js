@@ -28,20 +28,22 @@ const AWS = __importStar(require("aws-sdk"));
 const s3 = new AWS.S3();
 const storageRetrievalHandler = async (event) => {
     try {
-        let requestData;
-        if (typeof event.body === 'string' && event.body.trim() !== '') {
-            requestData = JSON.parse(event.body);
+        console.log('Received request:', event);
+        if (!event) {
+            console.error('Request data is missing or invalid');
+            throw new Error('Request data is missing or invalid');
         }
-        else {
-            throw new Error('Request body is empty');
-        }
+        const requestData = event;
+        console.log('Request data:', requestData);
         const storedData = await storeData(requestData);
+        console.log('Data stored successfully:', storedData);
         return {
             statusCode: 200,
             body: JSON.stringify({ storedData })
         };
     }
     catch (error) {
+        console.error('Error handling request:', error);
         return {
             statusCode: 500,
             body: JSON.stringify({ error: 'Internal server error' })
@@ -52,14 +54,14 @@ exports.storageRetrievalHandler = storageRetrievalHandler;
 const storeData = async (data) => {
     const storedObjectKey = `data_${Date.now()}.json`;
     try {
-        await s3
-            .upload({
+        console.log('Storing data in S3:', data);
+        await s3.upload({
             Bucket: 'financial-record',
             Key: storedObjectKey,
             Body: JSON.stringify(data),
             ContentType: 'application/json'
-        })
-            .promise();
+        }).promise();
+        console.log('Data stored successfully:', storedObjectKey);
         return storedObjectKey;
     }
     catch (error) {

@@ -23,10 +23,10 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.storageRetrievalHandler = void 0;
+exports.storageHandler = void 0;
 const AWS = __importStar(require("aws-sdk"));
 const s3 = new AWS.S3();
-const storageRetrievalHandler = async (event) => {
+const storageHandler = async (event) => {
     try {
         console.log('Received request:', event);
         if (!event) {
@@ -50,7 +50,7 @@ const storageRetrievalHandler = async (event) => {
         };
     }
 };
-exports.storageRetrievalHandler = storageRetrievalHandler;
+exports.storageHandler = storageHandler;
 const storeData = async (data) => {
     const storedObjectKey = `data_${Date.now()}.json`;
     try {

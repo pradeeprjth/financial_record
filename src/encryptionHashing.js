@@ -6,11 +6,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.encryptionHashingHandler = void 0;
 const anonymization_1 = require("./anonymization");
 const crypto_1 = __importDefault(require("crypto"));
-// Generate AES key
-const aesKey = crypto_1.default.randomBytes(32); // 256-bit key for AES-256 encryption
-// RSA key pair generation (for demonstration purposes, ideally you should use existing keys)
+// Function to generate a random AES key
+const generateAESKey = () => {
+    return crypto_1.default.randomBytes(32); // 256 bits key for AES-256 encryption
+};
+// Function to generate RSA key pair
 const { publicKey, privateKey } = crypto_1.default.generateKeyPairSync('rsa', {
-    modulusLength: 4096,
+    modulusLength: 2048, // Adjust modulus length as per requirement
     publicKeyEncoding: {
         type: 'spki',
         format: 'pem'
@@ -20,21 +22,21 @@ const { publicKey, privateKey } = crypto_1.default.generateKeyPairSync('rsa', {
         format: 'pem',
     }
 });
-// Encrypt data with AES-256
-const encryptAES = (data) => {
+// Function to encrypt data with AES-256
+const encryptAES = (data, key) => {
     const iv = crypto_1.default.randomBytes(16); // Initialization Vector
-    const cipher = crypto_1.default.createCipheriv('aes-256-cbc', aesKey, iv);
+    const cipher = crypto_1.default.createCipheriv('aes-256-cbc', key, iv);
     let encryptedData = cipher.update(JSON.stringify(data), 'utf-8', 'hex');
     encryptedData += cipher.final('hex');
     return Buffer.from(encryptedData, 'hex');
 };
-// Hash data with SHA-256
+// Function to hash data with SHA-256
 const hashSHA256 = (data) => {
     const hash = crypto_1.default.createHash('sha256');
     hash.update(JSON.stringify(data));
     return hash.digest('hex');
 };
-// RSA encryption for AES key
+// Function to encrypt AES key with RSA public key
 const encryptRSA = (data) => {
     return crypto_1.default.publicEncrypt(publicKey, data);
 };
@@ -44,8 +46,10 @@ const encryptionHashingHandler = async (event) => {
         const requestBody = JSON.parse(event.body || '');
         // Anonymize sensitive user data
         const anonymizedData = await (0, anonymization_1.anonymizationHandler)(event);
+        // Generate AES key
+        const aesKey = generateAESKey();
         // Encrypt the anonymized data with AES-256
-        const encryptedData = encryptAES(anonymizedData);
+        const encryptedData = encryptAES(anonymizedData, aesKey);
         // Encrypt AES key with RSA
         const encryptedAESKey = encryptRSA(aesKey);
         // Hash important fields for integrity checks

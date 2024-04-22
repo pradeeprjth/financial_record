@@ -2,61 +2,72 @@ import { APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { dataValidationHandler } from './src/dataValidation';
 import { encryptionHashingHandler } from './src/encryptionHashing';
 import { riskAssessmentHandler } from './src/riskAssessment';
-import { storageRetrievalHandler } from './src/storageRetrieval';
+import { storageHandler } from './src/storage';
+import { retrieveHandler } from './src/retrieve'
 
 export async function apiGatewayHandler(event: APIGatewayEvent): Promise<APIGatewayProxyResult> {
 
     try {
         const { httpMethod, resource, body } = event;
 
-        if (httpMethod !== 'POST') {
-            console.log('Method Not Allowed'); // Log method not allowed
-            return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
-        }
-
         switch (resource) {
             case '/financial_record':
-                // Step 1: Data Validation
-                const validationResponse = await dataValidationHandler(event);
-                console.log('Data validation response:', validationResponse); // Log data validation response
+                if (httpMethod === 'POST') {
+                    // Step 1: Data Validation
+                    const validationResponse = await dataValidationHandler(event);
+                    console.log('Data validation response:', validationResponse); // Log data validation response
 
-                if (validationResponse.statusCode !== 200) {
-                    return validationResponse;
-                }
+                    if (validationResponse.statusCode !== 200) {
+                        return validationResponse;
+                    }
 
-                // Step 2: Encryption and Hashing of sensitive data
-                const encryptionHashingResponse = await encryptionHashingHandler(event);
-                console.log('Encryption and hashing response:', encryptionHashingResponse); // Log encryption and hashing response
+                    // Step 2: Encryption and Hashing of sensitive data
+                    const encryptionHashingResponse = await encryptionHashingHandler(event);
+                    console.log('Encryption and hashing response:', encryptionHashingResponse); // Log encryption and hashing response
 
-                if (encryptionHashingResponse.statusCode !== 200) {
-                    return encryptionHashingResponse;
-                }
+                    if (encryptionHashingResponse.statusCode !== 200) {
+                        return encryptionHashingResponse;
+                    }
 
-                // Step 3: Risk Assessment, adding additional attribute riskScore
-                const riskAssessmentResponse = await riskAssessmentHandler(event);
-                console.log('Risk assessment response:', riskAssessmentResponse); // Log risk assessment response
+                    // Step 3: Risk Assessment, adding additional attribute riskScore
+                    const riskAssessmentResponse = await riskAssessmentHandler(event);
+                    console.log('Risk assessment response:', riskAssessmentResponse); // Log risk assessment response
 
-                if (riskAssessmentResponse.statusCode !== 200) {
-                    return riskAssessmentResponse;
-                }
+                    if (riskAssessmentResponse.statusCode !== 200) {
+                        return riskAssessmentResponse;
+                    }
 
-                // Merge the encrypted data and risk assessment data
-                const mergedData = mergeData(encryptionHashingResponse.body, riskAssessmentResponse.body);
-                console.log('Merged Data:', mergedData); // Log merged data
+                    // Merge the encrypted data and risk assessment data
+                    const mergedData = mergeData(encryptionHashingResponse.body, riskAssessmentResponse.body);
+                    console.log('Merged Data:', mergedData); // Log merged data
 
-                // Step 4: Store the entire object in S3
-                console.log('Storing data in S3'); // Log storage step
-                const storageResponse = await storageRetrievalHandler(mergedData);
-                console.log('Storage response:', storageResponse); // Log storage response
+                    // Step 4: Store the entire object in S3
+                    console.log('Storing data in S3'); // Log storage step
+                    const storageResponse = await storageHandler(mergedData);
+                    console.log('Storage response:', storageResponse); // Log storage response
 
-                if (storageResponse.statusCode !== 200) {
+                    if (storageResponse.statusCode !== 200) {
+                        return storageResponse;
+                    }
+
                     return storageResponse;
+                } else if (httpMethod === 'GET') {
+                    const retrieveDataResponse = await retrieveHandler(event);
+                    console.log('Data validation response:', retrieveDataResponse);
+
+                    if (retrieveDataResponse.statusCode !== 200) {
+                        return retrieveDataResponse;
+                    } else {
+                        // Return the decrypted data object
+                        return retrieveDataResponse;
+                    }
+                } else {
+                    // Handle unsupported methods
+                    console.log('Method not allowed:', httpMethod);
+                    return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
                 }
-
-                return storageResponse;
-
             default:
-                console.log('Resource not found:', resource); // Log resource not found
+                console.log('Resource not found:', resource);
                 return { statusCode: 404, body: JSON.stringify({ error: 'Not Found' }) };
         }
     } catch (error) {
@@ -89,7 +100,7 @@ const mergeData = (encryptedData: string, riskAssessmentData: string): any => {
             additionalInfo: riskAssessmentDataObj.additionalInfo,
             aesKey: encryptedDataObj.aesKey,
             hash: encryptedDataObj.hash,
-            riskScore: riskScore 
+            riskScore: riskScore
         };
 
         return mergedData;

@@ -2,12 +2,14 @@ import { APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { anonymizationHandler } from './anonymization';
 import crypto from 'crypto';
 
-// Generate AES key
-const aesKey = crypto.randomBytes(32); // 256-bit key for AES-256 encryption
+// Function to generate a random AES key
+const generateAESKey = (): Buffer => {
+    return crypto.randomBytes(32); // 256 bits key for AES-256 encryption
+};
 
-// RSA key pair generation (for demonstration purposes, ideally you should use existing keys)
+// Function to generate RSA key pair
 const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
-    modulusLength: 4096,
+    modulusLength: 2048, // Adjust modulus length as per requirement
     publicKeyEncoding: {
         type: 'spki',
         format: 'pem'
@@ -18,23 +20,23 @@ const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
     }
 });
 
-// Encrypt data with AES-256
-const encryptAES = (data: any): Buffer => {
+// Function to encrypt data with AES-256
+const encryptAES = (data: any, key: Buffer): Buffer => {
     const iv = crypto.randomBytes(16); // Initialization Vector
-    const cipher = crypto.createCipheriv('aes-256-cbc', aesKey, iv);
+    const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
     let encryptedData = cipher.update(JSON.stringify(data), 'utf-8', 'hex');
     encryptedData += cipher.final('hex');
     return Buffer.from(encryptedData, 'hex');
 };
 
-// Hash data with SHA-256
+// Function to hash data with SHA-256
 const hashSHA256 = (data: any): string => {
     const hash = crypto.createHash('sha256');
     hash.update(JSON.stringify(data));
     return hash.digest('hex');
 };
 
-// RSA encryption for AES key
+// Function to encrypt AES key with RSA public key
 const encryptRSA = (data: Buffer): Buffer => {
     return crypto.publicEncrypt(publicKey, data);
 };
@@ -47,8 +49,11 @@ export const encryptionHashingHandler = async (event: APIGatewayEvent): Promise<
         // Anonymize sensitive user data
         const anonymizedData = await anonymizationHandler(event);
 
+        // Generate AES key
+        const aesKey = generateAESKey();
+
         // Encrypt the anonymized data with AES-256
-        const encryptedData = encryptAES(anonymizedData);
+        const encryptedData = encryptAES(anonymizedData, aesKey);
 
         // Encrypt AES key with RSA
         const encryptedAESKey = encryptRSA(aesKey);

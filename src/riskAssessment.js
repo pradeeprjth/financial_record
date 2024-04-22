@@ -2,27 +2,36 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.riskAssessmentHandler = void 0;
 const dataEnrichment_1 = require("./dataEnrichment"); // Import the dataEnrichmentHandler
+// Risk assessment handler function
 const riskAssessmentHandler = async (event) => {
     try {
         // Step 1: Enrich the data
         const enrichmentResponse = await (0, dataEnrichment_1.dataEnrichmentHandler)(event);
-        console.log('Enrichment response:', enrichmentResponse); // Log enrichment response
+        console.log('Enrichment response:', enrichmentResponse);
         if (enrichmentResponse.statusCode !== 200) {
             console.error('Enrichment failed with status code:', enrichmentResponse.statusCode);
             return enrichmentResponse; // Return if enrichment failed
         }
-        // Extract enriched data from the response
-        const enrichedData = JSON.parse(enrichmentResponse.body).enrichedData;
-        console.log('Enriched data:', enrichedData); // Log enriched data
+        // Parse the response once and store it in a variable
+        const parsedResponse = JSON.parse(enrichmentResponse.body);
+        console.log('This is parsed response from dataEnrichmentHandler:', parsedResponse);
+        const enrichedData = parsedResponse.enrichedData;
+        const additionalInfo = parsedResponse.additionalInfo;
         // Step 2: Perform risk assessment based on the enriched data
         const riskScore = calculateRiskScore(enrichedData);
-        console.log('Risk score:', riskScore); // Log risk score
-        // Step 3: Add the risk score to the enriched data under the correct key
+        // Step 3: Add the risk score and additional info to the enriched data
         enrichedData.riskScore = riskScore;
+        enrichedData.additionalInfo = additionalInfo;
+        console.log("LE beta yaha se check kar pehle sab sahi h ya nahi ");
+        console.log('Enrichment response:', enrichedData);
+        console.log(additionalInfo);
         // Return the modified enrichedData as the response
         return {
             statusCode: 200,
-            body: JSON.stringify(enrichedData)
+            body: JSON.stringify({
+                enrichedData: enrichedData, // this one has object + riskScore
+                additionalInfo: additionalInfo //this is undefined
+            })
         };
     }
     catch (error) {
@@ -50,7 +59,6 @@ const calculateRiskScore = (data) => {
     // Add more risk assessment logic as needed
     return riskScore;
 };
-// Example function to calculate risk based on countries
 // Example function to calculate risk based on countries
 const calculateRiskFromCountries = (country) => {
     if (!country)

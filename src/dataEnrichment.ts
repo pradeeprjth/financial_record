@@ -15,8 +15,8 @@ interface EnrichedData {
 }
 
 interface AdditionalInfo {
-    currencyConversionRates: any; // Define a proper type for currency conversion rates
-    regionalEconomicIndicators: any; // Define a proper type for regional economic indicators
+    currencyConversionRates: any; 
+    regionalEconomicIndicators: any; 
     transactionType: string;
 }
 
@@ -31,10 +31,13 @@ export const dataEnrichmentHandler = async (event: APIGatewayEvent): Promise<API
         // Enrich transaction data with additional information
         const enrichedData: EnrichedData = enrichData(parsedData);
 
-        // Return response with enriched data
+        // Return response with enriched data, including enrichedData and additionalInfo properties
         return {
             statusCode: 200,
-            body: JSON.stringify({ enrichedData })
+            body: JSON.stringify({ 
+                enrichedData: enrichedData, 
+                additionalInfo: enrichedData.additionalInfo
+            })
         };
     } catch (error) {
         return {
@@ -53,8 +56,8 @@ const enrichData = (data: any): EnrichedData => {
 
     // Add any other relevant information to enhance risk assessment
     const additionalInfo: AdditionalInfo = {
-        currencyConversionRates,
-        regionalEconomicIndicators,
+        currencyConversionRates: currencyConversionRates,
+        regionalEconomicIndicators: regionalEconomicIndicators,
         transactionType: data.transactionDetails.paymentMethod === 'CreditCard' ? 'Online' : 'InStore'
     };
 
@@ -65,11 +68,11 @@ const enrichData = (data: any): EnrichedData => {
     // Return the enriched data
     return {
         transactionDetails: data.transactionDetails,
-        userDetails, // Include userDetails in the enriched data
-        additionalInfo, // Include additionalInfo in the enriched data
+        userDetails: userDetails, // Include userDetails in the enriched data
+        additionalInfo: additionalInfo, // Include additionalInfo in the enriched data
         risk: data.risk // Include the risk score in the enriched data
     };
-};
+}
 
 // Function to fetch currency conversion rates from an external API
 const fetchCurrencyConversionRates = (currency: string): any => {

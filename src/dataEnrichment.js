@@ -9,10 +9,13 @@ const dataEnrichmentHandler = async (event) => {
         const parsedData = JSON.parse(requestData);
         // Enrich transaction data with additional information
         const enrichedData = enrichData(parsedData);
-        // Return response with enriched data
+        // Return response with enriched data, including enrichedData and additionalInfo properties
         return {
             statusCode: 200,
-            body: JSON.stringify({ enrichedData })
+            body: JSON.stringify({
+                enrichedData: enrichedData,
+                additionalInfo: enrichedData.additionalInfo
+            })
         };
     }
     catch (error) {
@@ -30,8 +33,8 @@ const enrichData = (data) => {
     const regionalEconomicIndicators = fetchRegionalEconomicIndicators(data.transactionDetails.merchantDetails.countryCode);
     // Add any other relevant information to enhance risk assessment
     const additionalInfo = {
-        currencyConversionRates,
-        regionalEconomicIndicators,
+        currencyConversionRates: currencyConversionRates,
+        regionalEconomicIndicators: regionalEconomicIndicators,
         transactionType: data.transactionDetails.paymentMethod === 'CreditCard' ? 'Online' : 'InStore'
     };
     // Assuming userDetails is available elsewhere in the event or data,
@@ -40,8 +43,8 @@ const enrichData = (data) => {
     // Return the enriched data
     return {
         transactionDetails: data.transactionDetails,
-        userDetails, // Include userDetails in the enriched data
-        additionalInfo, // Include additionalInfo in the enriched data
+        userDetails: userDetails, // Include userDetails in the enriched data
+        additionalInfo: additionalInfo, // Include additionalInfo in the enriched data
         risk: data.risk // Include the risk score in the enriched data
     };
 };

@@ -9,11 +9,6 @@ export async function apiGatewayHandler(event: APIGatewayEvent): Promise<APIGate
     try {
         const { httpMethod, resource, body } = event;
 
-        console.log('Received event:', JSON.stringify(event)); // Log the received event
-        console.log('HTTP Method:', httpMethod); // Log the HTTP method
-        console.log('Resource:', resource); // Log the resource path
-        console.log('Request Body:', body); // Log the request body
-
         if (httpMethod !== 'POST') {
             console.log('Method Not Allowed'); // Log method not allowed
             return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
@@ -22,7 +17,6 @@ export async function apiGatewayHandler(event: APIGatewayEvent): Promise<APIGate
         switch (resource) {
             case '/financial_record':
                 // Step 1: Data Validation
-                console.log('Performing data validation'); // Log data validation step
                 const validationResponse = await dataValidationHandler(event);
                 console.log('Data validation response:', validationResponse); // Log data validation response
 
@@ -31,7 +25,6 @@ export async function apiGatewayHandler(event: APIGatewayEvent): Promise<APIGate
                 }
 
                 // Step 2: Encryption and Hashing of sensitive data
-                console.log('Performing encryption and hashing'); // Log encryption and hashing step
                 const encryptionHashingResponse = await encryptionHashingHandler(event);
                 console.log('Encryption and hashing response:', encryptionHashingResponse); // Log encryption and hashing response
 
@@ -40,7 +33,6 @@ export async function apiGatewayHandler(event: APIGatewayEvent): Promise<APIGate
                 }
 
                 // Step 3: Risk Assessment, adding additional attribute riskScore
-                console.log('Performing risk assessment'); // Log risk assessment step
                 const riskAssessmentResponse = await riskAssessmentHandler(event);
                 console.log('Risk assessment response:', riskAssessmentResponse); // Log risk assessment response
 
@@ -74,14 +66,19 @@ export async function apiGatewayHandler(event: APIGatewayEvent): Promise<APIGate
 };
 
 // Function to merge encrypted data, risk assessment data, and risk score
-// Function to merge encrypted data, risk assessment data, and risk score
 const mergeData = (encryptedData: string, riskAssessmentData: string): any => {
     try {
+        console.log('Encrypted data:', encryptedData);
+        console.log('Risk assessment data:', riskAssessmentData);
+
         const encryptedDataObj = JSON.parse(encryptedData);
         const riskAssessmentDataObj = JSON.parse(riskAssessmentData);
 
-        // Extract risk score directly from riskAssessmentData
-        const riskScore = riskAssessmentDataObj.riskScore;
+        console.log('Parsed encrypted data:', encryptedDataObj);
+        console.log('Parsed risk assessment data:', riskAssessmentDataObj);
+
+        // Extract risk score from riskAssessmentDataObj's enrichedData
+        const riskScore = riskAssessmentDataObj.enrichedData.riskScore;
 
         // Merge encrypted data, enriched data, and risk score
         const mergedData = {
@@ -89,7 +86,7 @@ const mergeData = (encryptedData: string, riskAssessmentData: string): any => {
             userId: encryptedDataObj.userId,
             transactionDetails: encryptedDataObj.transactionDetails,
             userDetails: encryptedDataObj.userDetails,
-            additionalInfo: encryptedDataObj.additionalInfo,
+            additionalInfo: riskAssessmentDataObj.additionalInfo,
             aesKey: encryptedDataObj.aesKey,
             hash: encryptedDataObj.hash,
             riskScore: riskScore 
@@ -101,5 +98,3 @@ const mergeData = (encryptedData: string, riskAssessmentData: string): any => {
         throw error; // Rethrow the error
     }
 };
-
-

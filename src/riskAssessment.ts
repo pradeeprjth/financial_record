@@ -5,18 +5,23 @@ export const riskAssessmentHandler = async (event: APIGatewayEvent): Promise<API
     try {
         // Step 1: Enrich the data
         const enrichmentResponse = await dataEnrichmentHandler(event);
+        console.log('Enrichment response:', enrichmentResponse); // Log enrichment response
         if (enrichmentResponse.statusCode !== 200) {
+            console.error('Enrichment failed with status code:', enrichmentResponse.statusCode);
             return enrichmentResponse; // Return if enrichment failed
         }
         
         // Extract enriched data from the response
         const enrichedData = JSON.parse(enrichmentResponse.body).enrichedData;
+        console.log('Enriched data:', enrichedData); // Log enriched data
 
         // Step 2: Perform risk assessment based on the enriched data
         const riskScore = calculateRiskScore(enrichedData);
+        console.log('Risk score:', riskScore); // Log risk score
 
-        // Step 3: Add the risk score to the enriched data
-        enrichedData.risk = riskScore;
+        // Step 3: Add the risk score and additional info to the enriched data
+        enrichedData.riskScore = riskScore;
+        enrichedData.additionalInfo = JSON.parse(enrichmentResponse.body).additionalInfo;
 
         // Return the modified enrichedData as the response
         return {
@@ -24,13 +29,14 @@ export const riskAssessmentHandler = async (event: APIGatewayEvent): Promise<API
             body: JSON.stringify(enrichedData)
         };
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error in riskAssessmentHandler:', error);
         return {
             statusCode: 500,
             body: JSON.stringify({ error: error instanceof Error ? error.message : 'Internal server error' })
         };
     }
 };
+
 
 // Function to calculate risk score based on various factors
 const calculateRiskScore = (data: any): number => {
@@ -56,10 +62,14 @@ const calculateRiskScore = (data: any): number => {
 };
 
 // Example function to calculate risk based on countries
+
+// Example function to calculate risk based on countries
 const calculateRiskFromCountries = (country: string): number => {
+    if (!country) return 0; // Check if country is null or undefined
     const riskyCountries = ['Nigeria', 'Russia', 'China'];
     return riskyCountries.includes(country) ? 20 : 0;
 };
+
 
 // Example function to calculate risk based on transaction frequency
 const calculateRiskFromTransactionFrequency = (userId: string): number => {
@@ -79,6 +89,10 @@ const calculateRiskFromPastTransactions = (transactionHistory: any[]): number =>
     for (const transaction of transactionHistory) {
         if (transaction.amount > 2000) {
             suspiciousTransactionCount++;
+        }
+        // Example: Increase risk score for transactions with unusual behavior
+        if (transaction.country === 'Nigeria' || transaction.country === 'Russia') {
+            suspiciousTransactionCount += 2;
         }
         // Add more criteria as needed
     }

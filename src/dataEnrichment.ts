@@ -9,6 +9,7 @@ interface EnrichedData {
         };
         paymentMethod: string;
     };
+    userDetails: any; // Define the type for userDetails
     additionalInfo: AdditionalInfo;
     risk: number;
 }
@@ -52,16 +53,20 @@ const enrichData = (data: any): EnrichedData => {
 
     // Add any other relevant information to enhance risk assessment
     const additionalInfo: AdditionalInfo = {
-        // You can add more fields as needed
         currencyConversionRates,
         regionalEconomicIndicators,
         transactionType: data.transactionDetails.paymentMethod === 'CreditCard' ? 'Online' : 'InStore'
     };
 
+    // Assuming userDetails is available elsewhere in the event or data,
+    // include it here. Modify this part based on where userDetails is available.
+    const userDetails = data.userDetails;
+
     // Return the enriched data
     return {
-        ...data,
-        additionalInfo,
+        transactionDetails: data.transactionDetails,
+        userDetails, // Include userDetails in the enriched data
+        additionalInfo, // Include additionalInfo in the enriched data
         risk: data.risk // Include the risk score in the enriched data
     };
 };

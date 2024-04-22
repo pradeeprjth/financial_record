@@ -30,7 +30,7 @@ const storeData = async (data: any): Promise<string> => {
     try {
         await s3
             .upload({
-                Bucket: 'financial_record',
+                Bucket: 'financial-record',
                 Key: storedObjectKey,
                 Body: JSON.stringify(data),
                 ContentType: 'application/json'

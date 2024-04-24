@@ -39,7 +39,14 @@ const storageHandler = async (event) => {
         console.log('Data stored successfully:', storedData);
         return {
             statusCode: 200,
-            body: JSON.stringify({ storedData })
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                success: true,
+                message: 'Data Stored successfully',
+                data: storedData,
+            }),
         };
     }
     catch (error) {

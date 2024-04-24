@@ -67,12 +67,12 @@ const storeRSAKeyPairInSecretsManager = async (publicKey: string, privateKey: st
 
 // Function to generate a random AES key
 const generateAESKey = (): Buffer => {
-    return crypto.randomBytes(32); // 256 bits key for AES-256 encryption
+    return crypto.randomBytes(32); 
 };
 
 // Function to encrypt data with AES-256
 const encryptAES = (data: any, key: Buffer): Buffer => {
-    const iv = crypto.randomBytes(16); // Initialization Vector
+    const iv = crypto.randomBytes(16); 
     const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
     let encryptedData = cipher.update(JSON.stringify(data), 'utf-8', 'hex');
     encryptedData += cipher.final('hex');

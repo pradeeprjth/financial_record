@@ -25,45 +25,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.retrieveHandler = void 0;
 const AWS = __importStar(require("aws-sdk"));
-const crypto = __importStar(require("crypto"));
 const s3 = new AWS.S3();
-const secretsManager = new AWS.SecretsManager();
-// Function to decrypt AES key with RSA private key obtained from AWS Secrets Manager
-const decryptRSA = async (encryptedData) => {
-    console.log('Decrypting AES key with RSA private key obtained from AWS Secrets Manager...');
-    try {
-        // Retrieve the private key from AWS Secrets Manager
-        const data = await secretsManager.getSecretValue({ SecretId: 'financial_record/rsa_keys' }).promise();
-        if (data.SecretString) {
-            const secret = JSON.parse(data.SecretString);
-            const privateKey = Buffer.from(secret.privateKey, 'base64');
-            console.log('Retrieved private key from AWS Secrets Manager:', privateKey);
-            // Use the private key to decrypt the AES key
-            const decryptedData = crypto.privateDecrypt({
-                key: privateKey,
-                padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
-                oaepHash: 'sha256'
-            }, encryptedData);
-            console.log('Decrypted AES key:', decryptedData);
-            return decryptedData;
-        }
-        else {
-            throw new Error('Private key not found in AWS Secrets Manager');
-        }
-    }
-    catch (error) {
-        console.error('Error retrieving private key from AWS Secrets Manager:', error);
-        throw error;
-    }
-};
-// Function to decrypt data with AES-256
-const decryptAES = (encryptedData, key, iv) => {
-    const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
-    let decrypted = decipher.update(encryptedData);
-    decrypted = Buffer.concat([decrypted, decipher.final()]);
-    console.log('Decrypted data inside decryptAES:', decrypted.toString());
-    return decrypted;
-};
 const retrieveHandler = async (event) => {
     var _a;
     try {
@@ -93,33 +55,16 @@ const retrieveHandler = async (event) => {
         }
         const encryptedDataObj = JSON.parse(s3Data.Body.toString('utf-8'));
         console.log('Encrypted data:', encryptedDataObj);
-        // Decode Base64 strings before decryption
-        const decodedUserDetails = Buffer.from(encryptedDataObj.userDetails, 'base64').toString();
-        console.log('Decoded userDetails before decryption:', decodedUserDetails);
-        const decodedAESKey = Buffer.from(encryptedDataObj.aesKey, 'base64');
-        const iv = Buffer.from(encryptedDataObj.iv, 'base64');
-        // Decrypt AES key with RSA private key obtained from AWS Secrets Manager
-        const decryptedAESKey = await decryptRSA(decodedAESKey);
-        console.log('Decrypted AES key:', decryptedAESKey.toString('base64'));
-        // Decrypt the userDetails field using AES-256
-        const decryptedUserDetails = decryptAES(Buffer.from(decodedUserDetails, 'utf8'), decryptedAESKey, iv);
-        console.log('Decrypted user details:', decryptedUserDetails);
-        const originalUserDetails = JSON.parse(decryptedUserDetails.toString());
-        // Verify data integrity
-        const hashedData = crypto.createHash('sha256').update(JSON.stringify(originalUserDetails)).digest('hex');
-        if (hashedData !== encryptedDataObj.hash) {
-            console.log('Data integrity check failed.');
-            throw new Error('Data integrity check failed');
-        }
-        // Replace the encrypted userDetails with decrypted userDetails in the object
-        const decryptedDataObj = {
-            ...encryptedDataObj,
-            userDetails: originalUserDetails,
-        };
-        console.log('Decrypted data:', decryptedDataObj);
         return {
             statusCode: 200,
-            body: JSON.stringify(decryptedDataObj),
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                success: true,
+                message: 'Data retrieved successfully',
+                data: encryptedDataObj,
+            }),
         };
     }
     catch (error) {

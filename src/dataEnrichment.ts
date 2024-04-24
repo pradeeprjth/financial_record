@@ -9,7 +9,7 @@ interface EnrichedData {
         };
         paymentMethod: string;
     };
-    userDetails: any; // Define the type for userDetails
+    userDetails: any; 
     additionalInfo: AdditionalInfo;
     risk: number;
 }
@@ -61,39 +61,31 @@ const enrichData = (data: any): EnrichedData => {
         transactionType: data.transactionDetails.paymentMethod === 'CreditCard' ? 'Online' : 'InStore'
     };
 
-    // Assuming userDetails is available elsewhere in the event or data,
-    // include it here. Modify this part based on where userDetails is available.
     const userDetails = data.userDetails;
 
     // Return the enriched data
     return {
         transactionDetails: data.transactionDetails,
-        userDetails: userDetails, // Include userDetails in the enriched data
-        additionalInfo: additionalInfo, // Include additionalInfo in the enriched data
-        risk: data.risk // Include the risk score in the enriched data
+        userDetails: userDetails,
+        additionalInfo: additionalInfo, 
+        risk: data.risk 
     };
 }
 
 // Function to fetch currency conversion rates from an external API
 const fetchCurrencyConversionRates = (currency: string): any => {
-    // Placeholder implementation: Simulate fetching currency conversion rates
-    // You would typically make a request to an external API here
     return {
         USD: 1.0,
         EUR: 0.85,
         GBP: 0.72
-        // Add more currency conversion rates as needed
     };
 };
 
 // Function to fetch regional economic indicators from an external API
 const fetchRegionalEconomicIndicators = (countryCode: string): any => {
-    // Placeholder implementation: Simulate fetching regional economic indicators
-    // You would typically make a request to an external API here
     return {
         country: countryCode,
         gdpGrowthRate: 3.2,
         inflationRate: 2.1,
-        // Add more regional economic indicators as needed
     };
 };

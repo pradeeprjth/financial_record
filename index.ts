@@ -15,7 +15,7 @@ export async function apiGatewayHandler(event: APIGatewayEvent): Promise<APIGate
                 if (httpMethod === 'POST') {
                     // Step 1: Data Validation
                     const validationResponse = await dataValidationHandler(event);
-                    console.log('Data validation response:', validationResponse); // Log data validation response
+                    console.log('Data validation response:', validationResponse);
 
                     if (validationResponse.statusCode !== 200) {
                         return validationResponse;
@@ -23,7 +23,7 @@ export async function apiGatewayHandler(event: APIGatewayEvent): Promise<APIGate
 
                     // Step 2: Encryption and Hashing of sensitive data
                     const encryptionHashingResponse = await encryptionHashingHandler(event);
-                    console.log('Encryption and hashing response:', encryptionHashingResponse); // Log encryption and hashing response
+                    console.log('Encryption and hashing response:', encryptionHashingResponse);
 
                     if (encryptionHashingResponse.statusCode !== 200) {
                         return encryptionHashingResponse;
@@ -31,7 +31,7 @@ export async function apiGatewayHandler(event: APIGatewayEvent): Promise<APIGate
 
                     // Step 3: Risk Assessment, adding additional attribute riskScore
                     const riskAssessmentResponse = await riskAssessmentHandler(event);
-                    console.log('Risk assessment response:', riskAssessmentResponse); // Log risk assessment response
+                    console.log('Risk assessment response:', riskAssessmentResponse); 
 
                     if (riskAssessmentResponse.statusCode !== 200) {
                         return riskAssessmentResponse;
@@ -39,12 +39,12 @@ export async function apiGatewayHandler(event: APIGatewayEvent): Promise<APIGate
 
                     // Merge the encrypted data and risk assessment data
                     const mergedData = mergeData(encryptionHashingResponse.body, riskAssessmentResponse.body);
-                    console.log('Merged Data:', mergedData); // Log merged data
+                    console.log('Merged Data:', mergedData);
 
                     // Step 4: Store the entire object in S3
-                    console.log('Storing data in S3'); // Log storage step
+                    console.log('Storing data in S3'); 
                     const storageResponse = await storageHandler(mergedData);
-                    console.log('Storage response:', storageResponse); // Log storage response
+                    console.log('Storage response:', storageResponse); 
 
                     if (storageResponse.statusCode !== 200) {
                         return storageResponse;
@@ -106,6 +106,6 @@ const mergeData = (encryptedData: string, riskAssessmentData: string): any => {
         return mergedData;
     } catch (error) {
         console.error('Error parsing JSON data:', error);
-        throw error; // Rethrow the error
+        throw error; 
     }
 };

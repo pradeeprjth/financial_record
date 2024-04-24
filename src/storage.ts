@@ -22,8 +22,16 @@ export const storageHandler = async (event: APIGatewayEvent): Promise<APIGateway
 
         return {
             statusCode: 200,
-            body: JSON.stringify({ storedData })
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                success: true,
+                message: 'Data Stored successfully',
+                data: storedData,
+            }),
         };
+        
     } catch (error) {
         console.error('Error handling request:', error);
         return {

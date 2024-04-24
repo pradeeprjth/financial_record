@@ -10,14 +10,14 @@ interface EnrichedData {
         };
         paymentMethod: string;
     };
-    userDetails: any; // Define the type for userDetails
+    userDetails: any;
     additionalInfo: AdditionalInfo;
     risk: number;
 }
 
 interface AdditionalInfo {
-    currencyConversionRates: any; // Define a proper type for currency conversion rates
-    regionalEconomicIndicators: any; // Define a proper type for regional economic indicators
+    currencyConversionRates: any; 
+    regionalEconomicIndicators: any; 
     transactionType: string;
 }
 
@@ -29,7 +29,7 @@ export const riskAssessmentHandler = async (event: APIGatewayEvent): Promise<API
         console.log('Enrichment response:', enrichmentResponse); 
         if (enrichmentResponse.statusCode !== 200) {
             console.error('Enrichment failed with status code:', enrichmentResponse.statusCode);
-            return enrichmentResponse; // Return if enrichment failed
+            return enrichmentResponse; 
         }
         
         // Parse the response once and store it in a variable
@@ -52,8 +52,8 @@ export const riskAssessmentHandler = async (event: APIGatewayEvent): Promise<API
         return {
             statusCode: 200,
             body: JSON.stringify({
-                enrichedData: enrichedData, // this one has object + riskScore
-                additionalInfo: additionalInfo //this is undefined
+                enrichedData: enrichedData, 
+                additionalInfo: additionalInfo
             })
         };
     } catch (error) {
@@ -83,19 +83,17 @@ const calculateRiskScore = (data: any): number => {
     // Example: Increase risk score based on past transaction behavior
     riskScore += calculateRiskFromPastTransactions(getTransactionHistory(data.userDetails.userId));
 
-    // Add more risk assessment logic as needed
-
     return riskScore;
 };
 
-// Example function to calculate risk based on countries
+//  function to calculate risk based on countries
 const calculateRiskFromCountries = (country: string): number => {
-    if (!country) return 0; // Check if country is null or undefined
+    if (!country) return 0; 
     const riskyCountries = ['Nigeria', 'Russia', 'China'];
     return riskyCountries.includes(country) ? 20 : 0;
 };
 
-// Example function to calculate risk based on transaction frequency
+//  function to calculate risk based on transaction frequency
 const calculateRiskFromTransactionFrequency = (userId: string): number => {
     const transactionHistory = getTransactionHistory(userId);
     const transactionFrequency = transactionHistory.length;
@@ -107,30 +105,26 @@ const calculateRiskFromTransactionFrequency = (userId: string): number => {
     return 0;
 };
 
-// Example function to calculate risk based on past transaction behavior
+//  function to calculate risk based on past transaction behavior
 const calculateRiskFromPastTransactions = (transactionHistory: any[]): number => {
     let suspiciousTransactionCount = 0;
     for (const transaction of transactionHistory) {
         if (transaction.amount > 2000) {
             suspiciousTransactionCount++;
         }
-        // Example: Increase risk score for transactions with unusual behavior
+        // Increase risk score for transactions with unusual behavior
         if (transaction.country === 'Nigeria' || transaction.country === 'Russia') {
             suspiciousTransactionCount += 2;
         }
-        // Add more criteria as needed
     }
-    return suspiciousTransactionCount * 5; // Each suspicious transaction contributes 5 to risk score
+    return suspiciousTransactionCount * 5; 
 };
 
-// Example function to retrieve transaction history from a database or external service
+//  function to retrieve transaction history from a database or external service
 const getTransactionHistory = (userId: string): any[] => {
-    // Retrieve transaction history for the given user
-    // Example implementation:
     return [
         { amount: 500, country: 'USA' },
         { amount: 1200, country: 'Nigeria' },
         { amount: 800, country: 'Russia' },
-        // Additional transaction records
     ];
 };

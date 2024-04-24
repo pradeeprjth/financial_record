@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.dataEnrichmentHandler = void 0;
 const dataEnrichmentHandler = async (event) => {
     try {
-        // Extract data from request body
         const requestData = event.body;
         // Parse the request data
         const parsedData = JSON.parse(requestData);
@@ -37,7 +36,6 @@ const enrichData = (data) => {
         regionalEconomicIndicators: regionalEconomicIndicators,
         transactionType: data.transactionDetails.paymentMethod === 'CreditCard' ? 'Online' : 'InStore'
     };
-    // Assuming userDetails is available elsewhere in the event or data,
     // include it here. Modify this part based on where userDetails is available.
     const userDetails = data.userDetails;
     // Return the enriched data
